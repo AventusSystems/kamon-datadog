@@ -31,4 +31,8 @@ def scalaCompact = Def.setting {
     case "2.12"          => "org.scala-lang.modules" %% "scala-java8-compat"  % "0.8.0"
    }
  }
- publishTo := Some(Resolver.file("file",  new File(Path.userHome.absolutePath+"/.sbt/preloaded")))
+publishMavenStyle := false
+publishTo := {
+  val prefix = if (isSnapshot.value) "snapshots" else "releases"
+  Some(s3resolver.value(s"Aventus $prefix S3 bucket", s3(s"$prefix.repo.aventus.io")).withIvyPatterns)
+}

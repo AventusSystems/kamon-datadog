@@ -89,6 +89,7 @@ class DatadogAPIMetricsSender extends Actor with ActorLogging {
     }).flatten.mkString(",")
     val body = s"""{"series":[$series]}"""
 
+    println(body)
     client.preparePost(url).setBody(body).setHeader("Content-Type", "application/json").execute().toCompletableFuture.toScala pipeTo self
   }
 
