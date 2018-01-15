@@ -17,6 +17,7 @@ import akka.actor.Status
 import org.asynchttpclient.Response
 import java.lang.management.ManagementFactory
 import java.util.concurrent.TimeUnit
+import collection.JavaConverters._
 
 /**
  * Sends metrics to Datadog through its native HTTPS API.
@@ -25,6 +26,7 @@ class DatadogAPIMetricsSender extends Actor with ActorLogging {
   import context.dispatcher
 
   val config = context.system.settings.config.getConfig("kamon.datadog")
+  val globalTags = context.system.settings.config.getStringList("kamon.datadog.global-tags").asScala
   val appName = config.getString("application-name")
   val client = new DefaultAsyncHttpClient(new DefaultAsyncHttpClientConfig.Builder()
     .setConnectTimeout(config.getDuration("http.connect-timeout", TimeUnit.MILLISECONDS).toInt)
@@ -68,7 +70,7 @@ class DatadogAPIMetricsSender extends Actor with ActorLogging {
       (metricIdentity, metricSnapshot) ← groupSnapshot.metrics
     } yield {
       val key = buildMetricName(groupIdentity, metricIdentity)
-      val tags = groupIdentity.tags.map { case (k,v) => "\"" + k + ":" + v + "\"" }.mkString(",")
+      val tags = globalTags ++ groupIdentity.tags.map { case (k,v) => "\"" + k + ":" + v + "\"" }.mkString(",")
       def emit(keyPostfix: String, metricType: String, value: Double): String =
         s"""{"metric":"${key}${keyPostfix}","points":[[${time},${value}]],"type":"${metricType}","host":"${host}","tags":[${tags}]}"""
 
