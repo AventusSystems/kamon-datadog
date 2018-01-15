@@ -63,7 +63,7 @@ class DatadogAPIMetricsSender extends Actor with ActorLogging {
   override def receive = ready
 
   def send(tick: TickMetricSnapshot): Unit = {
-    val time:Long = tick.from.millis / 1000
+    val time:Long = tick.from.toTimestamp.seconds
 
     val series:String = (for {
       (groupIdentity, groupSnapshot) ← tick.metrics
